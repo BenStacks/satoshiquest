@@ -162,7 +162,7 @@ export default function Home() {
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-xs font-bold">4</div>
                     <div>
-                      <strong>Find Ancient Satoshi Coins</strong> to gamble sBTC for resurrection
+                      <strong>Risk Real Bitcoin (sBTC)</strong> for resurrection when you die
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

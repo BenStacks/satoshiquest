@@ -17,7 +17,8 @@ import {
   Package,
   Zap,
   TrendingUp,
-  Gamepad2
+  Gamepad2,
+  Link
 } from 'lucide-react';
 import { 
   GameCharacter, 
@@ -26,6 +27,9 @@ import {
   CombatAction,
   LootRarity 
 } from '@/lib/types/game';
+import { blockchainGameService } from '@/lib/services/blockchain-game-service';
+import { sbtcService, SbtcBalance } from '@/lib/services/sbtc-service';
+import EpicLootNotification from './EpicLootNotification';
 
 interface PhaserGameClientProps {
   walletAddress: string;
@@ -62,6 +66,28 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
   const [selectedAction, setSelectedAction] = useState<CombatAction['type'] | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Blockchain integration state
+  const [isBlockchainConnected, setIsBlockchainConnected] = useState(false);
+  const [blockchainStatus, setBlockchainStatus] = useState<string>('Initializing...');
+  const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
+  const [transactionMessages, setTransactionMessages] = useState<string[]>([]);
+  
+  // Death countdown state
+  const [deathCountdown, setDeathCountdown] = useState<number | null>(null);
+  
+  // sBTC integration state
+  const [hasAncientCoin, setHasAncientCoin] = useState(false);
+  const [sbtcBalance, setSbtcBalance] = useState<SbtcBalance>({
+    balance: 0,
+    balanceBtc: 0,
+    formatted: '0.00000000 sBTC'
+  });
+  const [canResurrect, setCanResurrect] = useState(false);
+  const [resurrectionCost, setResurrectionCost] = useState(0);
+  
+  // Epic loot notification state
+  const [epicLoot, setEpicLoot] = useState<LootItem | null>(null);
+
   // Initialize Phaser game with dynamic import
   useEffect(() => {
     if (gameRef.current && !phaserGameRef.current) {
@@ -92,13 +118,125 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
       });
     }
 
+    // Handle window resize
+    const handleResize = () => {
+      if (phaserGameRef.current && gameRef.current) {
+        const containerWidth = gameRef.current.clientWidth;
+        const containerHeight = gameRef.current.clientHeight;
+        
+        // Maintain 4:3 aspect ratio
+        let gameWidth = Math.min(containerWidth, 800);
+        let gameHeight = Math.min(containerHeight, 600);
+        
+        const aspectRatio = 4/3;
+        if (gameWidth / gameHeight > aspectRatio) {
+          gameWidth = gameHeight * aspectRatio;
+        } else {
+          gameHeight = gameWidth / aspectRatio;
+        }
+        
+        phaserGameRef.current.scale.resize(gameWidth, gameHeight);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (phaserGameRef.current) {
         phaserGameRef.current.destroy(true);
         phaserGameRef.current = null;
       }
     };
   }, []);
+
+  // Initialize blockchain service and event listeners
+  useEffect(() => {
+    const initBlockchain = async () => {
+      try {
+        await blockchainGameService.initialize(walletAddress);
+        setIsBlockchainConnected(true);
+        setBlockchainStatus('Connected');
+        
+        // Fetch sBTC balance
+        const balance = await sbtcService.getSbtcBalance(walletAddress);
+        setSbtcBalance(balance);
+        
+        // Calculate resurrection cost
+        const cost = sbtcService.getResurrectionCost(character.level);
+        setResurrectionCost(cost);
+        
+        // Set up event listeners
+        blockchainGameService.on('lootMinted', (data: any) => {
+          setTransactionMessages(prev => [...prev, `🎯 Loot NFT minted: ${data.lootItem.name}`]);
+          setCombatLog(prev => [...prev, `💰 ${data.lootItem.name} has been minted as an NFT!`]);
+        });
+
+        blockchainGameService.on('characterDied', (data: any) => {
+          setTransactionMessages(prev => [...prev, `💀 Tombstone created at floor ${data.floor}`]);
+          setCombatLog(prev => [...prev, `⚰️ A tombstone marks your demise at floor ${data.floor}`]);
+        });
+
+        blockchainGameService.on('characterResurrected', (data: any) => {
+          setTransactionMessages(prev => [...prev, `⚡ Resurrected with ${data.sBtcAmount} sBTC`]);
+          setCombatLog(prev => [...prev, `🔥 You have been resurrected! Cost: ${data.sBtcAmount} sBTC`]);
+        });
+
+        blockchainGameService.on('transactionPending', (data: any) => {
+          setPendingTransactions(prev => new Set([...prev, data.txId]));
+        });
+
+        blockchainGameService.on('transactionConfirmed', (data: any) => {
+          setPendingTransactions(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(data.txId);
+            return newSet;
+          });
+        });
+
+        blockchainGameService.on('error', (error: any) => {
+          setTransactionMessages(prev => [...prev, `❌ Error: ${error.message}`]);
+          setBlockchainStatus(`Error: ${error.message}`);
+        });
+
+      } catch (error) {
+        console.error('Failed to initialize blockchain service:', error);
+        setBlockchainStatus('Failed to connect');
+        setIsBlockchainConnected(false);
+      }
+    };
+
+    if (walletAddress) {
+      initBlockchain();
+    }
+
+    return () => {
+      blockchainGameService.removeAllListeners();
+    };
+  }, [walletAddress]);
+
+  // Death countdown effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (deathCountdown !== null && deathCountdown > 0) {
+      interval = setInterval(() => {
+        setDeathCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            // Countdown finished, end the game
+            onGameEnd?.('death');
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [deathCountdown, onGameEnd]);
 
   const setupGameCallbacks = (dungeonScene: any) => {
     dungeonScene.setCallbacks({
@@ -109,13 +247,34 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
         addCombatLog(`💀 Encountered ${monster.name} (Level ${monster.level})!`);
       },
       
-      onTreasureFound: (loot: LootItem) => {
+      onTreasureFound: async (loot: LootItem) => {
         console.log('💰 Treasure found:', loot.name);
         setInventory(prev => [...prev, loot]);
         addCombatLog(`✨ Found ${loot.name} (${loot.rarity})!`);
         
-        // TODO: Call blockchain contract to mint NFT
-        console.log('🪙 Would mint NFT for:', loot);
+        // Check if this is an Ancient Satoshi Coin
+        if (loot.name === 'Ancient Satoshi Coin') {
+          setHasAncientCoin(true);
+          addCombatLog('🪙 LEGENDARY! You found an Ancient Satoshi Coin! This can be used for resurrection gambling.');
+        }
+        
+        // Show epic notification for legendary and mythic items
+        if (loot.rarity === 'legendary' || loot.rarity === 'mythic') {
+          setEpicLoot(loot);
+        }
+        
+        // Mint NFT on blockchain for valuable loot
+        if (isBlockchainConnected && walletAddress) {
+          try {
+            addCombatLog(`🔗 Minting ${loot.name} as NFT...`);
+            await blockchainGameService.mintLootNFT(loot, walletAddress);
+          } catch (error) {
+            console.error('Failed to mint loot NFT:', error);
+            addCombatLog(`❌ Failed to mint NFT: ${error}`);
+          }
+        } else {
+          console.log('🪙 Would mint NFT for:', loot);
+        }
       },
       
       onFloorAdvance: (floor: number) => {
@@ -124,21 +283,153 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
         addCombatLog(`🏃 Descended to Floor ${floor}!`);
       },
       
-      onPlayerDeath: () => {
+      onPlayerDeath: async () => {
         console.log('💀 Player died!');
         setCharacter(prev => ({ ...prev, isAlive: false, health: 0 }));
         addCombatLog('💀 You have fallen in battle...');
         
-        // TODO: Call blockchain contract to process death
-        setTimeout(() => {
-          onGameEnd?.('death');
-        }, 2000);
+        // Start countdown - 5 minutes (300 seconds) for blockchain users, 30 seconds for others
+        const countdownTime = isBlockchainConnected ? 300 : 30;
+        setDeathCountdown(countdownTime);
+        
+        // Process death on blockchain
+        if (isBlockchainConnected && walletAddress) {
+          try {
+            addCombatLog('⚰️ Creating tombstone on blockchain...');
+            await blockchainGameService.processCharacterDeath(
+              character,
+              'combat',
+              1000 // Simple play time in ms (will be calculated properly later)
+            );
+          } catch (error) {
+            console.error('Failed to process death on blockchain:', error);
+            addCombatLog(`❌ Failed to create tombstone: ${error}`);
+          }
+        }
       }
     });
   };
 
   const addCombatLog = (message: string) => {
     setCombatLog(prev => [...prev.slice(-9), message]); // Keep last 10 messages
+  };
+
+  const formatCountdown = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Check sBTC balance and resurrection eligibility
+  const checkResurrectionStatus = async () => {
+    if (!walletAddress || !isBlockchainConnected) return;
+    
+    try {
+      const resurrectionCheck = await sbtcService.canUseResurrection(walletAddress);
+      setSbtcBalance(resurrectionCheck.sbtcBalance || {
+        balance: 0,
+        balanceBtc: 0,
+        formatted: '0.00000000 sBTC'
+      });
+      setCanResurrect(resurrectionCheck.canResurrect);
+    } catch (error) {
+      console.error('Failed to check resurrection status:', error);
+      setCanResurrect(false);
+    }
+  };
+
+  // Check resurrection status when wallet connects or changes
+  useEffect(() => {
+    if (walletAddress && isBlockchainConnected) {
+      checkResurrectionStatus();
+      // Check every 30 seconds to keep balance updated
+      const interval = setInterval(checkResurrectionStatus, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [walletAddress, isBlockchainConnected]);
+
+  const handleResurrection = async () => {
+    if (!isBlockchainConnected || !walletAddress) {
+      addCombatLog('❌ Wallet not connected for resurrection');
+      return;
+    }
+
+    // REVOLUTIONARY MECHANIC: Use sBTC directly for resurrection, not inventory items!
+    const resurrectionCheck = await sbtcService.canUseResurrection(walletAddress);
+    
+    if (!resurrectionCheck.canResurrect) {
+      addCombatLog(`❌ Cannot resurrect: ${resurrectionCheck.reason}`);
+      addCombatLog('💰 You need sBTC balance to gamble for resurrection!');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      addCombatLog('₿ STARTING SBTC RESURRECTION GAMBLE...');
+      addCombatLog(`💰 Your balance: ${resurrectionCheck.sbtcBalance?.formatted}`);
+      addCombatLog(`🎰 Gambling ${sbtcService.formatSbtcAmount(resurrectionCost)} for resurrection...`);
+      addCombatLog('⚡ This uses REAL Bitcoin (sBTC) - win or lose forever!');
+      
+      const result = await sbtcService.executeResurrectionGamble(
+        walletAddress,
+        resurrectionCost,
+        character.id
+      );
+
+      if (result.success) {
+        addCombatLog(result.message);
+        
+        if (result.won) {
+          // Resurrection successful!
+          setCharacter(prev => ({
+            ...prev,
+            isAlive: true,
+            health: Math.floor(prev.maxHealth * 0.75), // Resurrect with 75% health
+            currentFloor: Math.max(1, prev.currentFloor - 2) // Go back 2 floors as penalty
+          }));
+          
+          // Clear the death countdown
+          setDeathCountdown(null);
+          
+          // Remove the Ancient Satoshi Coin from inventory (consumed)
+          setInventory(prev => prev.filter(item => item.name !== 'Ancient Satoshi Coin'));
+          setHasAncientCoin(false);
+          
+          // Restart the game engine
+          if (dungeonSceneRef.current) {
+            dungeonSceneRef.current.resetToFloor1();
+          }
+          
+          addCombatLog('⚡ The Ancient Satoshi Coin glows with power! You have been resurrected!');
+          addCombatLog('🔥 Welcome back, hero! You have been blessed by Satoshi himself!');
+          
+          // Update sBTC balance
+          const newBalance = await sbtcService.getSbtcBalance(walletAddress);
+          setSbtcBalance(newBalance);
+          
+        } else {
+          // Resurrection failed
+          addCombatLog('💀 The coin flip failed... Your sBTC has been burned as offering to the Bitcoin gods.');
+          addCombatLog('⚰️ Your character remains dead, but the Ancient Satoshi Coin is consumed.');
+          
+          // Remove the Ancient Satoshi Coin from inventory (consumed even on failure)
+          setInventory(prev => prev.filter(item => item.name !== 'Ancient Satoshi Coin'));
+          setHasAncientCoin(false);
+          
+          // Update sBTC balance
+          const newBalance = await sbtcService.getSbtcBalance(walletAddress);
+          setSbtcBalance(newBalance);
+        }
+      } else {
+        addCombatLog(`💀 Resurrection attempt failed: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Resurrection error:', error);
+      addCombatLog(`❌ Resurrection error: ${error}`);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const performCombatAction = async (actionType: CombatAction['type']) => {
@@ -372,12 +663,77 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Blockchain</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-1">
+                <Link className="w-4 h-4 text-blue-500" />
+                Status
+              </span>
+              <Badge variant={isBlockchainConnected ? "default" : "secondary"}>
+                {blockchainStatus}
+              </Badge>
+            </div>
+            {isBlockchainConnected && (
+              <>
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-1">
+                    <Coins className="w-4 h-4 text-orange-500" />
+                    sBTC
+                  </span>
+                  <span className="font-mono text-xs">{sbtcBalance.formatted}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="flex items-center gap-1">
+                    ₿ sBTC Balance
+                  </span>
+                  <Badge variant={canResurrect ? "default" : "outline"} className="text-xs">
+                    {sbtcBalance.formatted}
+                  </Badge>
+                </div>
+                {canResurrect && sbtcBalance && (
+                  <div className="flex justify-between">
+                    <span className="text-xs text-green-600">✅ Resurrection Cost</span>
+                    <span className="text-xs font-mono">{sbtcService.formatSbtcAmount(resurrectionCost)}</span>
+                  </div>
+                )}
+                {!canResurrect && sbtcBalance && (
+                  <div className="text-xs text-red-600">
+                    ❌ Insufficient sBTC for resurrection
+                  </div>
+                )}
+              </>
+            )}
+            {pendingTransactions.size > 0 && (
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  Pending
+                </span>
+                <span className="font-mono">{pendingTransactions.size}</span>
+              </div>
+            )}
+            {transactionMessages.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {transactionMessages.slice(-3).map((msg, idx) => (
+                  <div key={idx} className="text-xs text-muted-foreground truncate">
+                    {msg}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Game Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Phaser Game Canvas */}
-        <Card className="lg:col-span-2">
+        <Card className="xl:col-span-2 w-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Gamepad2 className="w-5 h-5" />
@@ -387,17 +743,133 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
               Use WASD or arrow keys to move • Walk into monsters to fight • Touch treasures to collect
             </CardDescription>
           </CardHeader>
-          <CardContent className="relative">
+          <CardContent className="relative p-4">
             <div 
               ref={gameRef} 
-              className="w-full h-[400px] border border-border rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900"
+              className="w-full aspect-[4/3] min-h-[300px] max-h-[600px] border border-border rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 relative mx-auto"
+              style={{
+                maxWidth: '800px',
+                position: 'relative',
+                zIndex: 1
+              }}
             />
             
             {!gameInitialized && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+              <div className="absolute inset-4 flex items-center justify-center bg-black bg-opacity-50 rounded-lg z-10">
                 <div className="text-center text-white">
                   <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                   <p>Loading Phaser.js Engine...</p>
+                </div>
+              </div>
+            )}
+
+            {!character.isAlive && (
+              <div className="absolute inset-0 flex items-center justify-center bg-red-900 bg-opacity-80 rounded-lg">
+                <div className="text-center text-white max-w-sm">
+                  <Skull className="w-16 h-16 mx-auto mb-4 text-red-300" />
+                  <h3 className="text-2xl font-bold mb-2">You Have Fallen</h3>
+                  <p className="text-red-200 mb-4">Your adventure ends at Floor {character.currentFloor}</p>
+                  
+                  {/* Countdown Display */}
+                  {deathCountdown !== null && (
+                    <div className={`mb-6 p-3 rounded-lg border ${
+                      deathCountdown <= 30 
+                        ? 'bg-red-700/70 border-red-400 animate-pulse' 
+                        : 'bg-red-800/50 border-red-600'
+                    }`}>
+                      <div className="text-yellow-300 text-sm mb-1">
+                        {isBlockchainConnected ? 'Resurrection window closes in:' : 'Game ending in:'}
+                      </div>
+                      <div className={`text-2xl font-mono font-bold ${
+                        deathCountdown <= 30 ? 'text-red-200' : 'text-yellow-200'
+                      }`}>
+                        {formatCountdown(deathCountdown)}
+                      </div>
+                      {isBlockchainConnected && (
+                        <div className="text-xs text-yellow-400 mt-1">
+                          {deathCountdown <= 30 
+                            ? 'Time running out! Resurrect now or lose your progress!' 
+                            : 'Use resurrection or click "Give Up" to end now'
+                          }
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {isBlockchainConnected ? (
+                    <div className="space-y-3">
+                      {canResurrect ? (
+                        <>
+                          <p className="text-sm text-yellow-300">
+                            ₿ You have sufficient sBTC balance! 
+                          </p>
+                          <p className="text-xs text-green-300">
+                            Balance: {sbtcBalance.formatted} (${sbtcBalance.usd?.toFixed(2) || 'N/A'})
+                          </p>
+                          <p className="text-xs text-red-300">
+                            Risk {sbtcService.formatSbtcAmount(resurrectionCost)} for a 50% chance at resurrection
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-red-300">
+                            You need sBTC balance to attempt resurrection
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Current balance: {sbtcBalance.formatted}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Required: {sbtcService.formatSbtcAmount(resurrectionCost)}
+                          </p>
+                        </>
+                      )}
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleResurrection}
+                          disabled={isProcessing || !canResurrect}
+                          className="bg-orange-600 hover:bg-orange-700 flex-1"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                              Gambling...
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-4 h-4 mr-2" />
+                              {canResurrect ? 'Gamble sBTC' : 'Insufficient sBTC'}
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            setDeathCountdown(null);
+                            onGameEnd?.('death');
+                          }}
+                          variant="outline"
+                          className="border-red-600 text-red-200 hover:bg-red-800 flex-1"
+                        >
+                          Give Up
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-red-300">
+                        Connect wallet to use sBTC resurrection
+                      </p>
+                      <Button 
+                        onClick={() => {
+                          setDeathCountdown(null);
+                          onGameEnd?.('death');
+                        }}
+                        variant="outline"
+                        className="border-red-600 text-red-200 hover:bg-red-800"
+                      >
+                        End Adventure
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -524,10 +996,15 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
       <Alert>
         <Coins className="h-4 w-4" />
         <AlertDescription>
-          <strong>🎮 Phase 1 Complete!</strong> Full Phaser.js game engine with dungeon exploration, combat, and loot! 
-          Next: Connect to blockchain for real NFT minting and sBTC resurrection mechanics.
+          <strong>🎮 Phase 3 Complete!</strong> Full sBTC integration! Find Ancient Satoshi Coins to gamble real Bitcoin for resurrection!
         </AlertDescription>
       </Alert>
+
+      {/* Epic Loot Notification */}
+      <EpicLootNotification 
+        loot={epicLoot}
+        onClose={() => setEpicLoot(null)}
+      />
     </div>
   );
 }

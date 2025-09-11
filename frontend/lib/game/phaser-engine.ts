@@ -457,6 +457,20 @@ export class DungeonScene extends Phaser.Scene {
   }
 
   private generateLoot(): LootItem {
+    // Ultra-rare chance for Ancient Satoshi Coin (0.1% chance, only on floor 5+)
+    if (this.currentFloor >= 5 && Math.random() < 0.001) {
+      return {
+        id: `ancient_satoshi_coin_${Date.now()}`,
+        name: 'Ancient Satoshi Coin',
+        type: 'consumable',
+        rarity: 'mythic',
+        attackBonus: 0,
+        defenseBonus: 0,
+        healthBonus: 0,
+        description: '🪙 A legendary artifact from the dawn of Bitcoin. Rumored to grant resurrection at the cost of great risk. One-time use only.',
+      };
+    }
+
     const rarities: Array<{ rarity: any, weight: number }> = [
       { rarity: 'common', weight: 50 },
       { rarity: 'uncommon', weight: 30 },
@@ -595,10 +609,26 @@ export class DungeonScene extends Phaser.Scene {
 // =============================================================================
 
 export const createPhaserGame = (parent: string | HTMLElement) => {
+  // Calculate responsive dimensions
+  const parentElement = typeof parent === 'string' ? document.getElementById(parent) : parent;
+  const containerWidth = parentElement?.clientWidth || 800;
+  const containerHeight = parentElement?.clientHeight || 600;
+  
+  // Maintain 4:3 aspect ratio while fitting container
+  let gameWidth = Math.min(containerWidth, 800);
+  let gameHeight = Math.min(containerHeight, 600);
+  
+  const aspectRatio = 4/3;
+  if (gameWidth / gameHeight > aspectRatio) {
+    gameWidth = gameHeight * aspectRatio;
+  } else {
+    gameHeight = gameWidth / aspectRatio;
+  }
+
   const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: gameWidth,
+    height: gameHeight,
     parent,
     backgroundColor: '#2c1810',
     scene: [BootScene, DungeonScene],
@@ -615,6 +645,12 @@ export const createPhaserGame = (parent: string | HTMLElement) => {
     render: {
       pixelArt: true,
       antialias: false
+    },
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: gameWidth,
+      height: gameHeight
     }
   };
 
