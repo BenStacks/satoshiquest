@@ -60,16 +60,11 @@ plan:
     - id: 0
       transactions:
         - emulated-contract-publish:
-            contract-name: hk-cursor-v2
-            emulated-sender: SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F
-            path: "./.cache/requirements/SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2.clar"
-            clarity-version: 2
-        - emulated-contract-publish:
-            contract-name: hk-merkle-tree-keccak160-v1
-            emulated-sender: SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F
-            path: "./.cache/requirements/SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-merkle-tree-keccak160-v1.clar"
-            clarity-version: 2
-      epoch: "2.4"
+            contract-name: nft-trait
+            emulated-sender: SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9
+            path: "./.cache/requirements/SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.clar"
+            clarity-version: 1
+      epoch: "2.0"
     - id: 1
       transactions:
         - emulated-contract-publish:
@@ -91,34 +86,14 @@ plan:
     - id: 2
       transactions:
         - emulated-contract-publish:
-            contract-name: wormhole-traits-v1
-            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.wormhole-traits-v1.clar"
+            contract-name: trait-dia-oracle
+            emulated-sender: ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J
+            path: "./.cache/requirements/ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.trait-dia-oracle.clar"
             clarity-version: 3
         - emulated-contract-publish:
-            contract-name: pyth-traits-v1
-            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-traits-v1.clar"
-            clarity-version: 3
-        - emulated-contract-publish:
-            contract-name: pyth-governance-v2
-            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-governance-v2.clar"
-            clarity-version: 3
-        - emulated-contract-publish:
-            contract-name: pyth-oracle-v3
-            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3.clar"
-            clarity-version: 3
-        - emulated-contract-publish:
-            contract-name: pyth-pnau-decoder-v2
-            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-pnau-decoder-v2.clar"
-            clarity-version: 3
-        - emulated-contract-publish:
-            contract-name: pyth-storage-v3
-            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3.clar"
+            contract-name: dia-oracle
+            emulated-sender: ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J
+            path: "./.cache/requirements/ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.dia-oracle.clar"
             clarity-version: 3
         - emulated-contract-publish:
             contract-name: satoshi-quest-core
@@ -131,11 +106,6 @@ plan:
             path: contracts/satoshi-quest-loot.clar
             clarity-version: 3
         - emulated-contract-publish:
-            contract-name: test-dia-oracle
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/test-dia-oracle.clar
-            clarity-version: 3
-        - emulated-contract-publish:
             contract-name: satoshi-quest-resurrection
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/satoshi-quest-resurrection.clar
@@ -145,4 +115,9 @@ plan:
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/satoshi-quest-tombstone.clar
             clarity-version: 3
-      epoch: "3.1"
+        - emulated-contract-publish:
+            contract-name: random-oracle
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/random-oracle.clar
+            clarity-version: 3
+      epoch: "3.0"

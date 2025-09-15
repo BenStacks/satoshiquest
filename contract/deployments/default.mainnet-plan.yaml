@@ -1,0 +1,40 @@
+---
+id: 2
+name: "Mainnet deployment plan for Satoshi Quest"
+network: mainnet
+stacks-node: "https://api.hiro.so"
+bitcoin-node: "https://api.hiro.so"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: satoshi-quest-core
+            expected-sender: SP1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 215840
+            path: contracts/satoshi-quest-core.clar
+            anchor-block-only: true
+            clarity-version: 3
+        - contract-publish:
+            contract-name: satoshi-quest-loot
+            expected-sender: SP1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 89320
+            path: contracts/satoshi-quest-loot.clar
+            anchor-block-only: true
+            clarity-version: 3
+    - id: 1
+      transactions:
+        - contract-publish:
+            contract-name: satoshi-quest-tombstone
+            expected-sender: SP1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 156780
+            path: contracts/satoshi-quest-tombstone.clar
+            anchor-block-only: true
+            clarity-version: 3
+        - contract-publish:
+            contract-name: satoshi-quest-resurrection
+            expected-sender: SP1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 134290
+            path: contracts/satoshi-quest-resurrection.clar
+            anchor-block-only: true
+            clarity-version: 3

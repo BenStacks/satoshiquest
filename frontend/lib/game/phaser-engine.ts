@@ -609,28 +609,34 @@ export class DungeonScene extends Phaser.Scene {
 // =============================================================================
 
 export const createPhaserGame = (parent: string | HTMLElement) => {
-  // Calculate responsive dimensions
+  // Calculate perfect responsive dimensions
   const parentElement = typeof parent === 'string' ? document.getElementById(parent) : parent;
   const containerWidth = parentElement?.clientWidth || 800;
   const containerHeight = parentElement?.clientHeight || 600;
   
-  // Maintain 4:3 aspect ratio while fitting container
-  let gameWidth = Math.min(containerWidth, 800);
-  let gameHeight = Math.min(containerHeight, 600);
+  // Perfect 4:3 aspect ratio with elegant scaling
+  const maxWidth = Math.min(containerWidth - 32, 800); // Account for padding
+  const maxHeight = Math.min(containerHeight - 32, 600);
   
   const aspectRatio = 4/3;
-  if (gameWidth / gameHeight > aspectRatio) {
+  let gameWidth = maxWidth;
+  let gameHeight = gameWidth / aspectRatio;
+  
+  if (gameHeight > maxHeight) {
+    gameHeight = maxHeight;
     gameWidth = gameHeight * aspectRatio;
-  } else {
-    gameHeight = gameWidth / aspectRatio;
   }
+  
+  // Ensure minimum playable size
+  gameWidth = Math.max(gameWidth, 480);
+  gameHeight = Math.max(gameHeight, 360);
 
   const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     width: gameWidth,
     height: gameHeight,
     parent,
-    backgroundColor: '#2c1810',
+    backgroundColor: '#1e293b',
     scene: [BootScene, DungeonScene],
     physics: {
       default: 'arcade',
@@ -644,13 +650,25 @@ export const createPhaserGame = (parent: string | HTMLElement) => {
     },
     render: {
       pixelArt: true,
-      antialias: false
+      antialias: false,
+      powerPreference: 'high-performance'
     },
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
       width: gameWidth,
-      height: gameHeight
+      height: gameHeight,
+      min: {
+        width: 480,
+        height: 360
+      },
+      max: {
+        width: 800,
+        height: 600
+      }
+    },
+    dom: {
+      createContainer: true
     }
   };
 

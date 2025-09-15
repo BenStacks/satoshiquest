@@ -1,0 +1,93 @@
+---
+id: 0
+name: Testnet deployment
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoind.testnet.stacks.co:18332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - requirement-publish:
+            contract-id: SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait
+            remap-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            remap-principals:
+              SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 4680
+            path: "./.cache/requirements/SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.clar"
+            clarity-version: 1
+      epoch: "2.0"
+    - id: 1
+      transactions:
+        - requirement-publish:
+            contract-id: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry
+            remap-sender: ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT
+            remap-principals:
+              SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4: ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT
+            cost: 112090
+            path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry.clar"
+            clarity-version: 3
+        - requirement-publish:
+            contract-id: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+            remap-sender: ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT
+            remap-principals:
+              SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4: ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT
+            cost: 47590
+            path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token.clar"
+            clarity-version: 3
+        - requirement-publish:
+            contract-id: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-deposit
+            remap-sender: ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT
+            remap-principals:
+              SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4: ST1F7QA2MDF17S807EPA36TSS8AMEFY4KA9TVGWXT
+            cost: 41510
+            path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-deposit.clar"
+            clarity-version: 3
+      epoch: "3.0"
+    - id: 2
+      transactions:
+        - requirement-publish:
+            contract-id: ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.trait-dia-oracle
+            remap-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            remap-principals:
+              ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 1260
+            path: "./.cache/requirements/ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.trait-dia-oracle.clar"
+            clarity-version: 3
+        - requirement-publish:
+            contract-id: ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.dia-oracle
+            remap-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            remap-principals:
+              ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 17470
+            path: "./.cache/requirements/ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.dia-oracle.clar"
+            clarity-version: 3
+        - contract-publish:
+            contract-name: satoshi-quest-core
+            expected-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 1878064
+            path: contracts/satoshi-quest-core.clar
+            anchor-block-only: true
+            clarity-version: 3
+        - contract-publish:
+            contract-name: satoshi-quest-loot
+            expected-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 1865702
+            path: contracts/satoshi-quest-loot.clar
+            anchor-block-only: true
+            clarity-version: 3
+        - contract-publish:
+            contract-name: satoshi-quest-resurrection
+            expected-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 1880403
+            path: contracts/satoshi-quest-resurrection.clar
+            anchor-block-only: true
+            clarity-version: 3
+        - contract-publish:
+            contract-name: satoshi-quest-tombstone
+            expected-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 1869377
+            path: contracts/satoshi-quest-tombstone.clar
+            anchor-block-only: true
+            clarity-version: 3
+      epoch: "3.0"

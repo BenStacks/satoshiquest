@@ -1,0 +1,16 @@
+---
+id: 0
+name: Satoshi Quest Core Contract Deployment - Phase 2
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "https://api.testnet.hiro.so"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: satoshi-quest-core
+            expected-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 400000
+            path: contracts/satoshi-quest-core.clar
+            anchor-block-only: true

@@ -8,39 +8,50 @@ cache_dir = './.cache'
 [[project.requirements]]
 contract_id = 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-deposit'
 
-# Pyth Oracle Requirements (for fallback price feeds)
 [[project.requirements]]
-contract_id = 'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3'
+contract_id = 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token'
 
 [[project.requirements]]
-contract_id = 'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3'
+contract_id = 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry'
 
 [[project.requirements]]
-contract_id = 'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-pnau-decoder-v2'
+contract_id = 'ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.dia-oracle'
+
+[[project.requirements]]
+contract_id = 'SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait'
+
+[[project.requirements]]
+contract_id = 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-loot'
+
+[[project.requirements]]
+contract_id = 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-tombstone'
+
+[[project.requirements]]
+contract_id = 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-resurrection'
 [contracts.satoshi-quest-core]
 path = 'contracts/satoshi-quest-core.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.satoshi-quest-loot]
 path = 'contracts/satoshi-quest-loot.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.satoshi-quest-resurrection]
 path = 'contracts/satoshi-quest-resurrection.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.satoshi-quest-tombstone]
 path = 'contracts/satoshi-quest-tombstone.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
-[contracts.test-dia-oracle]
-path = 'contracts/test-dia-oracle.clar'
+[contracts.random-oracle]
+path = 'contracts/random-oracle.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 [repl.analysis]
 passes = ['check_checker']
 

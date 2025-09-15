@@ -730,40 +730,56 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
         </Card>
       </div>
 
-      {/* Main Game Area */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Phaser Game Canvas */}
-        <Card className="xl:col-span-2 w-full">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gamepad2 className="w-5 h-5" />
-              Satoshi's Dungeon - Floor {character.currentFloor}
-            </CardTitle>
-            <CardDescription>
-              Use WASD or arrow keys to move • Walk into monsters to fight • Touch treasures to collect
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="relative p-4">
-            <div 
-              ref={gameRef} 
-              className="w-full aspect-[4/3] min-h-[300px] max-h-[600px] border border-border rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 relative mx-auto"
-              style={{
-                maxWidth: '800px',
-                position: 'relative',
-                zIndex: 1
-              }}
-            />
-            
-            {!gameInitialized && (
-              <div className="absolute inset-4 flex items-center justify-center bg-black bg-opacity-50 rounded-lg z-10">
-                <div className="text-center text-white">
-                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                  <p>Loading Phaser.js Engine...</p>
+      {/* Main Game Area - Refined & Perfectly Responsive */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Phaser Game Canvas - Elegant Container */}
+        <div className="xl:col-span-3 order-1 xl:order-1">
+          <Card className="shadow-2xl border-2 border-border/50 bg-gradient-to-br from-background via-background to-muted/30">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-600">
+                  <Gamepad2 className="w-5 h-5 text-white" />
                 </div>
-              </div>
-            )}
+                <div>
+                  <div className="text-xl font-bold">Satoshi's Dungeon</div>
+                  <div className="text-sm text-muted-foreground font-normal">Floor {character.currentFloor}</div>
+                </div>
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                Use WASD or arrow keys to move • Walk into monsters to fight • Touch treasures to collect
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-6">
+              {/* Perfect Game Canvas Container */}
+              <div className="relative w-full">
+                <div 
+                  ref={gameRef} 
+                  className="w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border-2 border-slate-700/50 shadow-inner overflow-hidden"
+                  style={{
+                    aspectRatio: '4 / 3',
+                    maxWidth: '100%',
+                    minHeight: '320px',
+                    maxHeight: 'min(70vh, 600px)',
+                    margin: '0 auto',
+                    position: 'relative',
+                    background: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)'
+                  }}
+                />
+                
+                {/* Game Loading Overlay */}
+                {!gameInitialized && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm rounded-xl z-20">
+                    <div className="text-center text-white">
+                      <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                      <p className="text-lg font-medium">Loading Phaser.js Engine...</p>
+                      <p className="text-sm text-slate-300 mt-2">Initializing game world...</p>
+                    </div>
+                  </div>
+                )}
 
-            {!character.isAlive && (
+                {/* Death Screen Overlay */}
+                {!character.isAlive && (
               <div className="absolute inset-0 flex items-center justify-center bg-red-900 bg-opacity-80 rounded-lg">
                 <div className="text-center text-white max-w-sm">
                   <Skull className="w-16 h-16 mx-auto mb-4 text-red-300" />
@@ -873,24 +889,28 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
                 </div>
               </div>
             )}
+              </div>
           </CardContent>
         </Card>
+        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
+        {/* Refined Sidebar - Perfectly Aligned */}
+        <div className="order-2 xl:order-2 space-y-6">
           {/* Combat Panel */}
           {isInCombat && currentMonster && (
-            <Card className="border-red-300 bg-red-50">
+            <Card className="border-red-400/50 bg-gradient-to-br from-red-50 via-red-50 to-red-100 shadow-lg">
               <CardHeader className="pb-3">
                 <CardTitle className="text-red-800 flex items-center gap-2">
-                  <Skull className="w-5 h-5" />
-                  Combat!
+                  <div className="p-1.5 rounded-lg bg-red-600">
+                    <Skull className="w-4 h-4 text-white" />
+                  </div>
+                  <span>Combat!</span>
                 </CardTitle>
-                <CardDescription className="text-red-700">
+                <CardDescription className="text-red-700 font-medium">
                   {currentMonster.name} - Level {currentMonster.level}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Monster Health</span>
@@ -990,7 +1010,8 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
             </CardContent>
           </Card>
         </div>
-      </div>
+    </div>
+
 
       {/* Info Alert */}
       <Alert>
@@ -1005,6 +1026,7 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
         loot={epicLoot}
         onClose={() => setEpicLoot(null)}
       />
-    </div>
+        </div>
+
   );
 }

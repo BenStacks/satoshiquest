@@ -1,0 +1,17 @@
+---
+id: 1
+name: "Testnet Oracle-only deployment for Satoshi Quest"
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "https://api.testnet.hiro.so"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: test-dia-oracle
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 126580
+            path: contracts/test-dia-oracle.clar
+            anchor-block-only: true
+            clarity-version: 3

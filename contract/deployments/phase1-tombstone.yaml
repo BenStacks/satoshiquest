@@ -1,0 +1,17 @@
+---
+id: 1
+name: "Phase 1: Deploy Tombstone Contract First (Independent)"
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "https://api.testnet.hiro.so"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: satoshi-quest-tombstone
+            expected-sender: ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7
+            cost: 156780
+            path: contracts/satoshi-quest-tombstone.clar
+            anchor-block-only: true
+            clarity-version: 3
