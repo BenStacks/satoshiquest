@@ -29,7 +29,7 @@ import {
 } from '@/lib/types/game';
 import { blockchainGameService } from '@/lib/services/blockchain-game-service';
 import { sbtcService, SbtcBalance } from '@/lib/services/sbtc-service';
-import EpicLootNotification from './EpicLootNotification';
+import EpicLootNotification from './screens/EpicLootNotification';
 
 interface PhaserGameClientProps {
   walletAddress: string;
@@ -87,6 +87,7 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
   
   // Epic loot notification state
   const [epicLoot, setEpicLoot] = useState<LootItem | null>(null);
+  const [statsCollapsed, setStatsCollapsed] = useState(false);
 
   // Initialize Phaser game with dynamic import
   useEffect(() => {
@@ -577,292 +578,151 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
   const expPercent = (character.experience / character.experienceToNext) * 100;
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      {/* Character Stats Header */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Star className="w-5 h-5 text-yellow-500" />
-              {character.name}
-            </CardTitle>
-            <CardDescription>Level {character.level} Hero</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-1">
-                  <Heart className="w-4 h-4 text-red-500" />
-                  Health
-                </span>
-                <span className="font-mono">{character.health}/{character.maxHealth}</span>
+    <div className="w-full h-screen flex flex-col p-2 gap-2">
+      {/* Ultra-Compact Stats Bar - Single Row */}
+      <Card className="border-primary/20 flex-shrink-0">
+        <CardContent className="p-2">
+          <div className="flex items-center justify-between gap-3">
+            {/* Character Stats - Compact */}
+            <div className="flex items-center gap-2 min-w-0">
+              <Star className="w-3 h-3 text-yellow-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 text-xs min-w-0">
+                <span className="font-bold truncate">Lv{character.level}</span>
+                <span className="text-muted-foreground">F{character.currentFloor}</span>
+                <div className="flex items-center gap-1">
+                  <Heart className="w-3 h-3 text-red-500" />
+                  <span className="font-mono">{character.health}/{character.maxHealth}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Sword className="w-3 h-3 text-orange-500" />
+                  <span className="font-mono">{character.attack}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-blue-500" />
+                  <span className="font-mono">{character.defense}</span>
+                </div>
               </div>
-              <Progress value={healthPercent} className="h-2" />
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Experience</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4 text-blue-500" />
-                  Progress
-                </span>
-                <span className="font-mono">{character.experience}/{character.experienceToNext}</span>
+            {/* Quick Stats - Inline */}
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <Package className="w-3 h-3 text-purple-500" />
+                <span className="font-mono">{inventory.length}</span>
               </div>
-              <Progress value={expPercent} className="h-2" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Combat</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Sword className="w-4 h-4 text-orange-500" />
-                Attack
-              </span>
-              <span className="font-mono">{character.attack}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Shield className="w-4 h-4 text-blue-500" />
-                Defense
-              </span>
-              <span className="font-mono">{character.defense}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <ArrowDown className="w-4 h-4 text-purple-500" />
-                Floor
-              </span>
-              <span className="font-mono">{character.currentFloor}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center gap-1">
-                <Package className="w-4 h-4 text-green-500" />
-                Items
-              </span>
-              <span className="font-mono">{inventory.length}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Blockchain</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="flex items-center gap-1">
-                <Link className="w-4 h-4 text-blue-500" />
-                Status
-              </span>
-              <Badge variant={isBlockchainConnected ? "default" : "secondary"}>
-                {blockchainStatus}
-              </Badge>
-            </div>
-            {isBlockchainConnected && (
-              <>
-                <div className="flex justify-between">
-                  <span className="flex items-center gap-1">
-                    <Coins className="w-4 h-4 text-orange-500" />
-                    sBTC
-                  </span>
+              {isBlockchainConnected && (
+                <div className="flex items-center gap-1">
+                  <Coins className="w-3 h-3 text-orange-500" />
                   <span className="font-mono text-xs">{sbtcBalance.formatted}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="flex items-center gap-1">
-                    ₿ sBTC Balance
-                  </span>
-                  <Badge variant={canResurrect ? "default" : "outline"} className="text-xs">
-                    {sbtcBalance.formatted}
-                  </Badge>
-                </div>
-                {canResurrect && sbtcBalance && (
-                  <div className="flex justify-between">
-                    <span className="text-xs text-green-600">✅ Resurrection Cost</span>
-                    <span className="text-xs font-mono">{sbtcService.formatSbtcAmount(resurrectionCost)}</span>
-                  </div>
-                )}
-                {!canResurrect && sbtcBalance && (
-                  <div className="text-xs text-red-600">
-                    ❌ Insufficient sBTC for resurrection
-                  </div>
-                )}
-              </>
-            )}
-            {pendingTransactions.size > 0 && (
-              <div className="flex justify-between">
-                <span className="flex items-center gap-1">
-                  <Zap className="w-4 h-4 text-yellow-500" />
-                  Pending
-                </span>
-                <span className="font-mono">{pendingTransactions.size}</span>
-              </div>
-            )}
-            {transactionMessages.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {transactionMessages.slice(-3).map((msg, idx) => (
-                  <div key={idx} className="text-xs text-muted-foreground truncate">
-                    {msg}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              )}
+              {canResurrect && (
+                <Badge variant="default" className="text-xs h-5">
+                  <Zap className="w-2.5 h-2.5 mr-1" />
+                  Resurrect Ready
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Main Game Area - Refined & Perfectly Responsive */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Phaser Game Canvas - Elegant Container */}
-        <div className="xl:col-span-3 order-1 xl:order-1">
-          <Card className="shadow-2xl border-2 border-border/50 bg-gradient-to-br from-background via-background to-muted/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-red-600">
-                  <Gamepad2 className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-xl font-bold">Satoshi's Dungeon</div>
-                  <div className="text-sm text-muted-foreground font-normal">Floor {character.currentFloor}</div>
-                </div>
-              </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
-                Use WASD or arrow keys to move • Walk into monsters to fight • Touch treasures to collect
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent className="p-6">
-              {/* Perfect Game Canvas Container */}
-              <div className="relative w-full">
-                <div 
-                  ref={gameRef} 
-                  className="w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-xl border-2 border-slate-700/50 shadow-inner overflow-hidden"
-                  style={{
-                    aspectRatio: '4 / 3',
-                    maxWidth: '100%',
-                    minHeight: '320px',
-                    maxHeight: 'min(70vh, 600px)',
-                    margin: '0 auto',
-                    position: 'relative',
-                    background: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)'
-                  }}
-                />
-                
-                {/* Game Loading Overlay */}
+      {/* Main Game Area - Maximized Space */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-2 min-h-0">
+        {/* Phaser Game Canvas - Full Height */}
+        <Card className="shadow-lg border-primary/20 flex flex-col min-h-0">
+          <CardHeader className="pb-1 pt-2 px-3 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Gamepad2 className="w-3.5 h-3.5 text-primary" />
+              <div>
+                <CardTitle className="text-sm font-bold">Satoshi's Dungeon - Floor {character.currentFloor}</CardTitle>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="flex-1 p-2 min-h-0">
+            <div className="relative w-full h-full">
+              <div
+                ref={gameRef}
+                className="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-lg border border-slate-700/50 overflow-hidden"
+                style={{
+                  minHeight: '400px'
+                }}
+              />
+
+                {/* Loading Overlay */}
                 {!gameInitialized && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm rounded-xl z-20">
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm rounded-lg z-20">
                     <div className="text-center text-white">
-                      <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                      <p className="text-lg font-medium">Loading Phaser.js Engine...</p>
-                      <p className="text-sm text-slate-300 mt-2">Initializing game world...</p>
+                      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                      <p className="text-sm font-medium">Loading game engine...</p>
                     </div>
                   </div>
                 )}
 
                 {/* Death Screen Overlay */}
                 {!character.isAlive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-red-900 bg-opacity-80 rounded-lg">
-                <div className="text-center text-white max-w-sm">
-                  <Skull className="w-16 h-16 mx-auto mb-4 text-red-300" />
-                  <h3 className="text-2xl font-bold mb-2">You Have Fallen</h3>
-                  <p className="text-red-200 mb-4">Your adventure ends at Floor {character.currentFloor}</p>
-                  
-                  {/* Countdown Display */}
+              <div className="absolute inset-0 flex items-center justify-center bg-red-900/90 backdrop-blur-sm rounded-lg z-30">
+                <div className="text-center text-white max-w-sm p-6">
+                  <Skull className="w-14 h-14 mx-auto mb-3 text-red-300" />
+                  <h3 className="text-xl font-bold mb-1">You Have Fallen</h3>
+                  <p className="text-red-200 text-sm mb-4">Floor {character.currentFloor}</p>
+
+                  {/* Countdown */}
                   {deathCountdown !== null && (
-                    <div className={`mb-6 p-3 rounded-lg border ${
-                      deathCountdown <= 30 
-                        ? 'bg-red-700/70 border-red-400 animate-pulse' 
+                    <div className={`mb-4 p-3 rounded-lg border ${
+                      deathCountdown <= 30
+                        ? 'bg-red-700/70 border-red-400 animate-pulse'
                         : 'bg-red-800/50 border-red-600'
                     }`}>
-                      <div className="text-yellow-300 text-sm mb-1">
-                        {isBlockchainConnected ? 'Resurrection window closes in:' : 'Game ending in:'}
+                      <div className="text-yellow-300 text-xs mb-1">
+                        {isBlockchainConnected ? 'Window closes in:' : 'Ending in:'}
                       </div>
-                      <div className={`text-2xl font-mono font-bold ${
+                      <div className={`text-xl font-mono font-bold ${
                         deathCountdown <= 30 ? 'text-red-200' : 'text-yellow-200'
                       }`}>
                         {formatCountdown(deathCountdown)}
                       </div>
-                      {isBlockchainConnected && (
-                        <div className="text-xs text-yellow-400 mt-1">
-                          {deathCountdown <= 30 
-                            ? 'Time running out! Resurrect now or lose your progress!' 
-                            : 'Use resurrection or click "Give Up" to end now'
-                          }
-                        </div>
-                      )}
                     </div>
                   )}
-                  
+
+
                   {isBlockchainConnected ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {canResurrect ? (
                         <>
-                          <p className="text-sm text-yellow-300">
-                            ₿ You have sufficient sBTC balance! 
-                          </p>
-                          <p className="text-xs text-green-300">
-                            Balance: {sbtcBalance.formatted} (${sbtcBalance.usd?.toFixed(2) || 'N/A'})
-                          </p>
-                          <p className="text-xs text-red-300">
-                            Risk {sbtcService.formatSbtcAmount(resurrectionCost)} for a 50% chance at resurrection
-                          </p>
+                          <p className="text-xs text-yellow-300">Balance: {sbtcBalance.formatted}</p>
+                          <p className="text-xs text-red-300">Risk {sbtcService.formatSbtcAmount(resurrectionCost)} for 47% win</p>
                         </>
                       ) : (
-                        <>
-                          <p className="text-sm text-red-300">
-                            You need sBTC balance to attempt resurrection
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            Current balance: {sbtcBalance.formatted}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            Required: {sbtcService.formatSbtcAmount(resurrectionCost)}
-                          </p>
-                        </>
+                        <p className="text-xs text-red-300">Need {sbtcService.formatSbtcAmount(resurrectionCost)} sBTC</p>
                       )}
                       <div className="flex gap-2">
-                        <Button 
+                        <Button
                           onClick={handleResurrection}
                           disabled={isProcessing || !canResurrect}
+                          size="sm"
                           className="bg-orange-600 hover:bg-orange-700 flex-1"
                         >
                           {isProcessing ? (
                             <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                              Gambling...
+                              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                              Gambling
                             </>
                           ) : (
                             <>
-                              <Zap className="w-4 h-4 mr-2" />
-                              {canResurrect ? 'Gamble sBTC' : 'Insufficient sBTC'}
+                              <Zap className="w-3 h-3 mr-1" />
+                              {canResurrect ? 'Gamble' : 'No sBTC'}
                             </>
                           )}
                         </Button>
-                        <Button 
+                        <Button
                           onClick={() => {
                             setDeathCountdown(null);
                             onGameEnd?.('death');
                           }}
                           variant="outline"
+                          size="sm"
                           className="border-red-600 text-red-200 hover:bg-red-800 flex-1"
                         >
                           Give Up
@@ -870,85 +730,78 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <p className="text-sm text-red-300">
-                        Connect wallet to use sBTC resurrection
-                      </p>
-                      <Button 
-                        onClick={() => {
-                          setDeathCountdown(null);
-                          onGameEnd?.('death');
-                        }}
-                        variant="outline"
-                        className="border-red-600 text-red-200 hover:bg-red-800"
-                      >
-                        End Adventure
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => {
+                        setDeathCountdown(null);
+                        onGameEnd?.('death');
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="border-red-600 text-red-200 hover:bg-red-800 w-full"
+                    >
+                      End Adventure
+                    </Button>
                   )}
                 </div>
               </div>
             )}
-              </div>
+            </div>
           </CardContent>
         </Card>
-        </div>
 
-        {/* Refined Sidebar - Perfectly Aligned */}
-        <div className="order-2 xl:order-2 space-y-6">
+        {/* Compact Sidebar - 260px */}
+        <div className="flex flex-col gap-1.5 min-h-0 overflow-y-auto">
           {/* Combat Panel */}
           {isInCombat && currentMonster && (
-            <Card className="border-red-400/50 bg-gradient-to-br from-red-50 via-red-50 to-red-100 shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-red-800 flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-red-600">
-                    <Skull className="w-4 h-4 text-white" />
+            <Card className="border-red-500/30 bg-red-50 dark:bg-red-950/30 flex-shrink-0">
+              <CardContent className="p-2">
+                <div className="flex items-center gap-1 mb-1.5">
+                  <Skull className="w-3 h-3 text-red-500" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-red-900 dark:text-red-100 truncate">{currentMonster.name}</p>
                   </div>
-                  <span>Combat!</span>
-                </CardTitle>
-                <CardDescription className="text-red-700 font-medium">
-                  {currentMonster.name} - Level {currentMonster.level}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Monster Health</span>
-                    <span className="font-mono">{currentMonster.health}/{currentMonster.maxHealth}</span>
+                  <span className="text-xs text-red-700 dark:text-red-300">Lv{currentMonster.level}</span>
+                </div>
+                <div className="space-y-0.5 mb-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span>HP</span>
+                    <span className="font-mono text-xs">{currentMonster.health}/{currentMonster.maxHealth}</span>
                   </div>
-                  <Progress 
-                    value={(currentMonster.health / currentMonster.maxHealth) * 100} 
-                    className="h-2"
+                  <Progress
+                    value={(currentMonster.health / currentMonster.maxHealth) * 100}
+                    className="h-1"
                   />
                 </div>
-                
-                <div className="grid grid-cols-1 gap-2">
-                  <Button 
+                <div className="grid grid-cols-3 gap-1">
+                  <Button
                     onClick={() => performCombatAction('ATTACK')}
                     disabled={isProcessing}
                     variant={selectedAction === 'ATTACK' ? 'default' : 'outline'}
                     size="sm"
+                    className="h-8 text-xs flex-col p-1"
                   >
-                    <Sword className="w-4 h-4 mr-2" />
-                    Attack
+                    <Sword className="w-3 h-3" />
+                    <span className="text-xs">ATK</span>
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => performCombatAction('DEFEND')}
                     disabled={isProcessing}
                     variant={selectedAction === 'DEFEND' ? 'default' : 'outline'}
                     size="sm"
+                    className="h-8 text-xs flex-col p-1"
                   >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Defend
+                    <Shield className="w-3 h-3" />
+                    <span className="text-xs">DEF</span>
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => performCombatAction('FLEE')}
                     disabled={isProcessing}
                     variant={selectedAction === 'FLEE' ? 'destructive' : 'outline'}
                     size="sm"
+                    className="h-8 text-xs flex-col p-1"
                   >
-                    <ArrowDown className="w-4 h-4 mr-2" />
-                    Flee
+                    <ArrowDown className="w-3 h-3" />
+                    <span className="text-xs">Run</span>
                   </Button>
                 </div>
               </CardContent>
@@ -957,76 +810,78 @@ export default function PhaserGameClient({ walletAddress, onGameEnd }: PhaserGam
 
           {/* Inventory */}
           {inventory.length > 0 && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="w-5 h-5" />
-                  Inventory ({inventory.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {inventory.map((item) => (
-                  <div 
-                    key={item.id} 
-                    className={`p-2 border rounded-lg ${getRarityColor(item.rarity)}`}
-                  >
-                    <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-medium text-sm">{item.name}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {item.rarity}
-                      </Badge>
-                    </div>
-                    <p className="text-xs mb-2">
-                      {item.attackBonus ? `+${item.attackBonus} ATK ` : ''}
-                      {item.defenseBonus ? `+${item.defenseBonus} DEF ` : ''}
-                      {item.healthBonus ? `+${item.healthBonus} HP` : ''}
-                    </p>
-                    <Button 
-                      size="sm" 
-                      onClick={() => equipItem(item)}
-                      className="w-full text-xs"
+            <Card className="flex-shrink-0">
+              <CardContent className="p-2">
+                <div className="flex items-center gap-1 mb-1.5">
+                  <Package className="w-3 h-3" />
+                  <p className="text-xs font-bold">Items ({inventory.length})</p>
+                </div>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {inventory.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-1 border rounded ${getRarityColor(item.rarity)}`}
                     >
-                      Equip
-                    </Button>
-                  </div>
-                ))}
+                      <div className="flex justify-between items-center mb-0.5">
+                        <h4 className="font-medium text-xs truncate flex-1">{item.name}</h4>
+                        <Badge variant="secondary" className="text-xs h-3 px-1 ml-1">
+                          {item.rarity[0]}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="text-xs text-muted-foreground">
+                          {item.attackBonus ? `+${item.attackBonus}ATK ` : ''}
+                          {item.defenseBonus ? `+${item.defenseBonus}DEF ` : ''}
+                          {item.healthBonus ? `+${item.healthBonus}HP` : ''}
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => equipItem(item)}
+                          className="h-5 text-xs px-2"
+                        >
+                          Use
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
 
           {/* Combat Log */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle>Adventure Log</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48 overflow-y-auto space-y-1 text-sm font-mono bg-black text-green-400 p-3 rounded">
+          <Card className="flex-1 min-h-0 flex flex-col">
+            <CardContent className="p-2 flex-1 min-h-0 flex flex-col">
+              <div className="flex items-center gap-1 mb-1">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-xs font-bold">Log</p>
+              </div>
+              <div className="flex-1 overflow-y-auto text-xs font-mono bg-black text-green-400 p-1.5 rounded min-h-0">
                 {combatLog.map((message, index) => (
-                  <div key={index} className="leading-relaxed">
-                    {message}
+                  <div key={index} className="leading-tight text-xs">
+                    <span className="text-green-600">&gt;</span> {message}
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
         </div>
-    </div>
+      </div>
 
-
-      {/* Info Alert */}
-      <Alert>
-        <Coins className="h-4 w-4" />
-        <AlertDescription>
-          <strong>🎮 Phase 3 Complete!</strong> Full sBTC integration! Find Ancient Satoshi Coins to gamble real Bitcoin for resurrection!
+      {/* Info Alert - Ultra Compact */}
+      <Alert className="border-primary/20 bg-primary/5 flex-shrink-0 py-1.5">
+        <Coins className="h-3 w-3" />
+        <AlertDescription className="text-xs">
+          Find Ancient Satoshi Coins to gamble sBTC for resurrection
         </AlertDescription>
       </Alert>
 
       {/* Epic Loot Notification */}
-      <EpicLootNotification 
+      <EpicLootNotification
         loot={epicLoot}
         onClose={() => setEpicLoot(null)}
       />
-        </div>
+    </div>
 
   );
 }

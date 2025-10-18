@@ -46,8 +46,6 @@
 ;; =============================================================================
 
 (define-constant CONTRACT_OWNER tx-sender)
-;; Use placeholder address for core contract - will be updated after deployment
-(define-constant SATOSHI_QUEST_CORE_CONTRACT 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-core)
 
 ;; Error codes
 (define-constant ERR_UNAUTHORIZED (err u1001))
@@ -121,12 +119,21 @@
 ;; Token URI base
 (define-data-var token-uri-base (string-ascii 256) "https://api.satoshiquest.io/metadata/loot/")
 
+;; Authorized game contract (using data-var to break circular dependency)
+(define-data-var authorized-game-contract (optional principal) none)
+
 ;; =============================================================================
 ;; PRIVATE FUNCTIONS
 ;; =============================================================================
 
 (define-private (is-game-contract)
-    (is-eq contract-caller SATOSHI_QUEST_CORE_CONTRACT)
+    (or
+        (match (var-get authorized-game-contract)
+            core-address (is-eq contract-caller core-address)
+            false ;; No core contract set yet
+        )
+        (is-contract-owner) ;; Allow contract owner for testing
+    )
 )
 
 (define-private (is-contract-owner)
@@ -303,6 +310,21 @@
 ;; =============================================================================
 ;; ADMIN FUNCTIONS
 ;; =============================================================================
+
+;; Set authorized game contract (owner only - called after core contract is deployed)
+(define-public (set-game-contract (core-contract principal))
+    (begin
+        (asserts! (is-contract-owner) ERR_UNAUTHORIZED)
+        (var-set authorized-game-contract (some core-contract))
+        (print {
+            event: "game-contract-authorized",
+            core-contract: core-contract,
+            admin: tx-sender,
+            block-height: stacks-block-height,
+        })
+        (ok true)
+    )
+)
 
 ;; Set token URI base (contract owner only)
 (define-public (set-token-uri-base (new-base (string-ascii 256)))

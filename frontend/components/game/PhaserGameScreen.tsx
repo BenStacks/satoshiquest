@@ -11,17 +11,22 @@ interface PhaserGameScreenProps {
 // Dynamically import the client-side Phaser game component to avoid SSR issues
 const PhaserGameClient = dynamic(
   () => import('./PhaserGameClient'),
-  { 
+  {
     ssr: false,
     loading: () => (
-      <Card className="w-full max-w-7xl mx-auto">
-        <CardContent className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p>Loading Phaser.js Game Engine...</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="w-full max-w-7xl mx-auto">
+        <Card className="shadow-lg border-primary/30">
+          <CardContent className="flex items-center justify-center p-12">
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-primary">Loading Game Engine</h3>
+                <p className="text-sm text-muted-foreground">Initializing Phaser.js...</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 );

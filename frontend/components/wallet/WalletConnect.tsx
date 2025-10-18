@@ -118,55 +118,32 @@ export default function WalletConnect({
 
   if (!walletData) {
     return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2">
-            <Bitcoin className="w-6 h-6" />
-            Connect to Bitcoin
-          </CardTitle>
-          <CardDescription>
-            Connect your Stacks wallet to enter Satoshi's Quest
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Network className="w-4 h-4" />
-              Network: {networkInfo.isMainnet ? 'Mainnet' : 'Testnet'}
-            </div>
-            
-            <Button 
-              onClick={connectWallet} 
-              disabled={isConnecting}
-              className="w-full"
-              size="lg"
-            >
-              {isConnecting ? (
-                <>
-                  <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Connect Stacks Wallet
-                </>
-              )}
-            </Button>
-            
-            <div className="text-xs text-muted-foreground">
-              Supports Leather, Xverse, and other Stacks wallets
-            </div>
-          </div>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+      <div className="relative">
+        <Button 
+          onClick={connectWallet} 
+          disabled={isConnecting}
+          className="w-full"
+        >
+          {isConnecting ? (
+            <>
+              <div className="w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Connecting...
+            </>
+          ) : (
+            <>
+              <Wallet className="w-4 h-4 mr-2" />
+              Connect Wallet
+            </>
           )}
-        </CardContent>
-      </Card>
+        </Button>
+        
+        {error && (
+          <Alert variant="destructive" className="absolute top-full mt-2 w-full z-50">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+      </div>
     );
   }
 

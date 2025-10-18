@@ -60,14 +60,6 @@ plan:
     - id: 0
       transactions:
         - emulated-contract-publish:
-            contract-name: nft-trait
-            emulated-sender: SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9
-            path: "./.cache/requirements/SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait.clar"
-            clarity-version: 1
-      epoch: "2.0"
-    - id: 1
-      transactions:
-        - emulated-contract-publish:
             contract-name: sbtc-registry
             emulated-sender: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry.clar"
@@ -82,18 +74,10 @@ plan:
             emulated-sender: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-deposit.clar"
             clarity-version: 3
-      epoch: "3.0"
-    - id: 2
-      transactions:
         - emulated-contract-publish:
-            contract-name: trait-dia-oracle
-            emulated-sender: ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J
-            path: "./.cache/requirements/ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.trait-dia-oracle.clar"
-            clarity-version: 3
-        - emulated-contract-publish:
-            contract-name: dia-oracle
-            emulated-sender: ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J
-            path: "./.cache/requirements/ST1S5ZGRZV5K4S9205RWPRTX9RGS9JV40KQMR4G1J.dia-oracle.clar"
+            contract-name: random-oracle
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/random-oracle.clar
             clarity-version: 3
         - emulated-contract-publish:
             contract-name: satoshi-quest-core
@@ -114,10 +98,5 @@ plan:
             contract-name: satoshi-quest-tombstone
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/satoshi-quest-tombstone.clar
-            clarity-version: 3
-        - emulated-contract-publish:
-            contract-name: random-oracle
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/random-oracle.clar
             clarity-version: 3
       epoch: "3.0"

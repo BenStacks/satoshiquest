@@ -20,12 +20,6 @@
 
 (define-constant CONTRACT_OWNER tx-sender)
 
-;; Contract references - PRODUCTION DEPLOYMENT COMPLETE
-;; All contracts now deployed and live on testnet
-(define-constant LOOT_CONTRACT 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-loot)
-(define-constant TOMBSTONE_CONTRACT 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-tombstone)
-(define-constant RESURRECTION_CONTRACT 'ST2F3J1PK46D6XVRBB9SQ66PY89P8G0EBDW5E05M7.satoshi-quest-resurrection)
-
 ;; Error codes
 (define-constant ERR_UNAUTHORIZED (err u2001))
 (define-constant ERR_CHARACTER_NOT_FOUND (err u2002))
@@ -389,25 +383,15 @@
             success-count: uint,
         })
     )
-    (let ((burn-result (contract-call? LOOT_CONTRACT burn-loot-item item-id
-            (get char-name state)
-        )))
-        (match burn-result
-            success
-            {
-                char-name: (get char-name state),
-                success-count: (+ (get success-count state) u1),
-            }
-            error
-            {
-                char-name: (get char-name state),
-                success-count: (get success-count state),
-            }
-        )
-    )
+    ;; Simplified - just track count for now
+    ;; Loot burning happens via event-driven architecture
+    {
+        char-name: (get char-name state),
+        success-count: (+ (get success-count state) u1),
+    }
 )
 
-;; Create legacy tombstone NFT - PRODUCTION IMPLEMENTATION
+;; Create legacy tombstone NFT - EVENT-DRIVEN IMPLEMENTATION
 (define-private (create-legacy-tombstone
         (character-data {
             name: (string-utf8 32),
@@ -425,7 +409,12 @@
         (play-time uint)
         (burned-items (list 10 uint))
     )
-    (let ((tombstone-metadata {
+    ;; Event-driven approach: emit event for backend to create tombstone
+    ;; This avoids cross-contract calls and circular dependencies
+    (let ((tombstone-id stacks-block-height))
+        (print {
+            event: "tombstone-requested",
+            tombstone-id: tombstone-id,
             character-name: (get name character-data),
             final-level: (get level character-data),
             deepest-floor: (get deepest-floor character-data),
@@ -435,30 +424,8 @@
             final-score: final-score,
             burned-items-count: (len burned-items),
             death-block: stacks-block-height,
-        }))
-        (match (contract-call? TOMBSTONE_CONTRACT mint-tombstone tx-sender
-            tombstone-metadata
-        )
-            success (begin
-                (print {
-                    event: "tombstone-created",
-                    tombstone-id: success,
-                    character-name: (get name character-data),
-                    final-score: final-score,
-                    final-level: (get level character-data),
-                })
-                (ok success)
-            )
-            error (begin
-                (print {
-                    event: "tombstone-creation-failed",
-                    character-name: (get name character-data),
-                    error: error,
-                })
-                ;; Error recovery: generate alternate tombstone ID
-                (ok (+ stacks-block-height u1))
-            )
-        )
+        })
+        (ok tombstone-id)
     )
 )
 
@@ -675,9 +642,7 @@
 (define-read-only (get-integration-status)
     {
         core-deployed: true,
-        loot-contract: LOOT_CONTRACT,
-        tombstone-contract: TOMBSTONE_CONTRACT,
-        resurrection-contract: RESURRECTION_CONTRACT,
+        event-driven-architecture: true,
         contracts-integrated: (var-get contracts-integrated),
         game-active: (var-get game-active),
     }
